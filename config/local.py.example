@@ -1,0 +1,8 @@
+# 个人配置模板: 复制本文件为 local.py 后修改(local.py 已被 .gitignore 忽略)
+
+# 配置表数据目录(真实策划表所在目录)
+RULE_DATA = r"D:\your\project\config\excel"
+
+# 如需覆盖 base.py 中的业务配置, 在此重新赋值即可, 例如:
+# CHECK_BLACKLIST = ['10001', '10002']
+# CURRENCY_SELL_LIMIT = {'900001': 10000, '900002': 200000}
