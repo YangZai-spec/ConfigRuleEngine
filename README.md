@@ -43,7 +43,99 @@
               └────────────────┘        └──────────────────┘
 ```
 
-## 快速开始
+## 快速开始（Windows 从零开始版）
+
+如果本机没有 Python 基础，按下面顺序做即可，全程只需一个「命令提示符 / 终端」窗口。
+
+### 第 0 步：确认有 Python
+
+打开「命令提示符」（Win+R → 输入 `cmd` → 回车），执行：
+
+```bat
+python --version
+```
+
+- 显示 `Python 3.10.x` 及以上 → 可以继续
+- 显示「不是内部或外部命令」→ 去 python.org 下载安装，**安装时务必勾选 `Add Python to PATH`**，装完重开命令行再试
+
+### 第 1 步：把代码放到一个简单路径
+
+建议专门建一个文件夹放代码，路径里**不要有中文和空格**：
+
+```bat
+mkdir D:\Projects
+cd /d D:\Projects
+git clone https://github.com/YangZai-spec/ConfigRuleEngine.git
+cd ConfigRuleEngine
+```
+
+> 没有 git 就到仓库页面点 `Code` → `Download ZIP`，解压后**进入最内层那个 ConfigRuleEngine 文件夹**
+> （Windows 解压常多套一层：`ConfigRuleEngine\ConfigRuleEngine\`，进错层会找不到 requirements.txt）
+
+### 第 2 步：装依赖（关键：装进"你要用来跑脚本的那个 Python"）
+
+**方式 A：虚拟环境（推荐，不污染本机环境）**
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+```
+
+激活成功后命令行前面会出现 `(.venv)` 前缀，之后的 `python` 和 `pip` 都只作用于这个项目。
+
+**方式 B：直接装到当前 Python**
+
+```bat
+python -m pip install -r requirements.txt
+```
+
+> 注意：一定要写 `python -m pip`，不要直接写 `pip`。
+> 机器上装了多个 Python 时，`pip` 常常装到另一个版本里，结果就是"装完了还报缺依赖"。
+
+国内下载慢或超时，加清华镜像源：
+
+```bat
+python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+### 第 3 步：验证装好了
+
+```bat
+python -c "import pandas, openpyxl, pydantic; print('依赖 OK')"
+```
+
+打印 `依赖 OK` 说明装对了。若报 `ModuleNotFoundError`，回到第 2 步，用同一条 `python` 重装。
+
+### 第 4 步：运行
+
+```bat
+python sample_data\make_sample.py   :: 生成示例配置表(首次需要)
+python run_checks.py                :: 运行全部检查
+```
+
+结果在 `reports\` 目录：`check_summary.txt` 是汇总，`*_report.txt` 是各规则明细。
+
+### 第 5 步：日常使用
+
+- 用 venv 的同学：**每次新开命令行都要先 `cd` 到项目目录，再执行 `.venv\Scripts\activate`**
+- 换机器/重装环境：重做第 2 步即可
+
+### 已经装过但还是报缺依赖？
+
+99% 是装进了别的 Python。执行下面这条，看它打印的路径是不是你以为的那个：
+
+```bat
+python -c "import sys; print(sys.executable)"
+```
+
+然后**用这个完整路径**重装：
+
+```bat
+"C:\上面打印出来的路径\python.exe" -m pip install -r requirements.txt
+```
+
+### 常用命令速查
 
 ```bash
 # 1. 安装依赖
