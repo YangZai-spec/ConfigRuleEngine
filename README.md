@@ -58,6 +58,16 @@ python run_checks.py
 
 检查结果输出到 `reports/` 目录：每个规则一份明细报告（`*_report.txt`），外加一份汇总报告 `check_summary.txt`。
 
+### 常见报错排查
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 提示「缺少运行依赖: pandas / openpyxl / pydantic」 | 依赖未安装或装到了别的 Python 环境 | `pip install -r requirements.txt`；多版本环境用 `python -m pip install -r requirements.txt` 确保装进当前解释器 |
+| 汇总报告里「加载模块失败 -> ModuleNotFoundError: ...」 | 规则模块 import 的依赖缺失 | 按提示安装对应包；本项目启动时会做依赖预检，正常情况下不会走到这里 |
+| 汇总报告里「加载模块失败 -> SyntaxError: ...」 | 新增的规则文件有语法错误 | 直接单跑该模块定位：`python rule/你的规则.py` |
+| 「未找到包含 Check_ 方法的规则类」 | 规则类里没有 `Check_` 前缀方法，或方法名写错 | 检查方法命名，参考 `rule/item.py` |
+| 报告里所有规则都 PASS 但明显应该有问题 | 数据目录没指对，读到的是空的 | 检查 `config/local.py` 里的 `RULE_DATA` 路径 |
+
 ### 接入真实配置表
 
 ```bash

@@ -11,6 +11,36 @@ from pathlib import Path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
+REQUIRED_DEPS = {
+    'pandas': 'pandas',
+    'openpyxl': 'openpyxl',
+    'pydantic': 'pydantic',
+}
+
+
+def check_dependencies():
+    '''
+    启动前检查运行依赖。
+    缺少依赖时, 规则模块会在 import 阶段失败, 但报错会被吞成一句 "加载模块失败",
+    排查成本很高, 因此在这里提前拦截并给出明确提示。
+    '''
+    missing = []
+    for mod, pkg in REQUIRED_DEPS.items():
+        try:
+            __import__(mod)
+        except ImportError:
+            missing.append(pkg)
+
+    if missing:
+        print("=" * 60)
+        print("缺少运行依赖: " + ", ".join(missing))
+        print("请先安装依赖后再运行:")
+        print("    pip install -r requirements.txt")
+        print("    pip install " + " ".join(missing))
+        print("=" * 60)
+        sys.exit(2)
+
+
 try:
     from util.commontools import get_logger, runRules
     USE_LOGGER = True
@@ -70,24 +100,30 @@ def discover_rule_classes(rule_dir="rule", pattern="*.py", exclude_patterns=None
 
 
 def load_rule_module(file_path):
-    # 获取实例模块
+    '''
+    加载规则模块, 返回 (module, error_msg):
+    - 成功: (module, None)
+    - 失败: (None, 具体原因)  原因会写进汇总报告, 便于直接定位(如缺少依赖/语法错误)
+    '''
     try:
         module_name = os.path.splitext(os.path.basename(file_path))[0]
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None:
-            logger.error(f"无法加载模块规格: {file_path}")
-            return None
+            msg = f"无法加载模块规格: {file_path}"
+            logger.error(msg)
+            return None, msg
 
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
         logger.debug(f"成功加载模块: {module_name}")
-        return module
+        return module, None
 
     except Exception as e:
-        logger.error(f"加载模块 {file_path} 时发生错误: {str(e)}")
-        return None
+        msg = f"{type(e).__name__}: {e}"
+        logger.error(f"加载模块 {file_path} 时发生错误: {msg}")
+        return None, msg
 
 
 def find_rule_class(module):
@@ -216,12 +252,12 @@ def run_all_rules(output_dir="reports", summary_file="check_summary.txt"):
         logger.info(f"{'='*40}")
 
         try:
-            module = load_rule_module(file_path)
+            module, load_err = load_rule_module(file_path)
             if module is None:
                 results.append({
                     'file': file_name,
                     'success': False,
-                    'error': '加载模块失败'
+                    'error': f'加载模块失败 -> {load_err}'
                 })
                 continue
 
@@ -301,6 +337,8 @@ def run_all_rules(output_dir="reports", summary_file="check_summary.txt"):
 
 
 def main():
+    check_dependencies()
+
     success = run_all_rules()
 
     if success:
