@@ -32,11 +32,15 @@ def check_dependencies():
             missing.append(pkg)
 
     if missing:
+        # 常见原因: 依赖装进了另一个 Python 环境, 因此这里显式打印当前解释器路径与对应安装命令
         print("=" * 60)
         print("缺少运行依赖: " + ", ".join(missing))
-        print("请先安装依赖后再运行:")
-        print("    pip install -r requirements.txt")
-        print("    pip install " + " ".join(missing))
+        print("当前运行的 Python 解释器:")
+        print(f"    {sys.executable}")
+        print("请用【同一个解释器】安装依赖后重试:")
+        print(f'    "{sys.executable}" -m pip install -r requirements.txt')
+        print(f'    "{sys.executable}" -m pip install ' + " ".join(missing))
+        print("提示: 直接用 pip install 可能装进其他 Python 环境, 务必用上面的完整路径形式。")
         print("=" * 60)
         sys.exit(2)
 
